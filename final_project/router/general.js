@@ -40,37 +40,39 @@ const doesExist = (username) => {
 }
 
 // Get the book list available in the shop
-public_users.get('/',async function (req, res) {
-    const data = await getBooks();
-    return res.status(200).json({ message: data });
-    });
+public_users.get("/", async (req, res) => {
+    try {
+      const resp = await axios.get("http://localhost:5000/books");
+      return res.status(200).json(resp.data);
+    } catch (e) {
+      return res.status(500).json({ message: "API call failed" });
+    }
+  });
 
-//Promise
-const getBooks = () => {
-    return new Promise((resolve, reject) => {
-      resolve(books);
+public_users.get("/books", (req, res) => {
+    return res.status(200).json(books);
     });
-  };
 
 // Get book details based on ISBN
-public_users.get('/isbn/:isbn', async function (req, res) {
-  const data = await getIsbnBooks();
-  const isbn = req.params.isbn
-  return res.status(200).json({message: data[isbn]});
- });
+public_users.get("/isbn/:isbn", async (req, res) => {
+    try {
+      const isbn = req.params.isbn;
+      const resp = await axios.get("http://localhost:5000/books");
+      const book = resp.data[isbn];
+      if (!book) return res.status(404).json({ message: "Book not found." });
+      return res.status(200).json(book);
+    } catch {
+      return res.status(500).json({ message: "API call failed" });
+    }
+  });
   
-//Promise
-const getIsbnBooks = () => {
-    return new Promise((resolve, reject) => {
-      resolve(books);
-    });
-  };
+
 
 // Get book details based on author
 public_users.get('/author/:author', async function (req, res) {
     const auth = req.params.author.trim().toLowerCase();
 
-    const data = await getAuthorBooks();
+    const data = await axios.get("http://localhost:5000/books");
 
     const entry = Object.entries(data).find(
       ([id, data]) => data.author.trim().toLowerCase() === auth
@@ -82,18 +84,11 @@ public_users.get('/author/:author', async function (req, res) {
     return res.status(404).json({message: "Author not found."})
 });
 
-//Promise
-const getAuthorBooks = () => {
-    return new Promise((resolve, reject) => {
-      resolve(books);
-    });
-  };
-
 // Get all books based on title
 public_users.get('/title/:title',async function (req, res) {
     const titlebook = req.params.title.trim().toLowerCase();
 
-    const data = await getTitleBooks();
+    const data = await axios.get("http://localhost:5000/books");
 
     const entry = Object.entries(data).find(
       ([id, data]) => data.title.trim().toLowerCase() === titlebook
@@ -104,13 +99,6 @@ public_users.get('/title/:title',async function (req, res) {
     }
     return res.status(404).json({message: "Author not found."})
 });
-
-//Promise
-const getTitleBooks = () => {
-    return new Promise((resolve, reject) => {
-      resolve(books);
-    });
-  };
 
 //  Get book review
 public_users.get('/review/:isbn',function (req, res) {
